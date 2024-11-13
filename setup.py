@@ -55,19 +55,6 @@ def setup_cython_extension():
     sources = ['%s.pyx'%name for name in names]
     extra_compile_args = ["-O3", "-ffast-math", "-march=native", "-fopenmp"]
     extra_link_args=['-fopenmp']
-    platform_name = platform.system()
-    if platform_name.lower() == 'darwin':
-        src_paths = ['/usr/local', '/opt/homebrew']
-        for src in src_paths:
-            gcc_path = os.path.join(src, 'Cellar/gcc')
-            if not os.path.exists(gcc_path):
-                continue
-            versions = os.listdir(gcc_path)
-            version = max(versions, key=lambda i: int(i.split('.')[0]))
-            version_int = version.split('.')[0]
-            path = os.path.join(gcc_path, '%s/lib/gcc/%s'%(version, version_int))
-            os.environ['CC'] = 'gcc-%s'%version_int
-            os.environ['CXX'] = 'g++-%s'%version_int
 
     ext_modules = []
     for name, source in zip(names, sources):
