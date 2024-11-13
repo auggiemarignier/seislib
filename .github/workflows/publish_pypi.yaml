@@ -1,0 +1,36 @@
+name: Publish to PyPI
+
+on:
+    push:
+        branches:
+            - ci_build
+
+jobs:
+    build:
+        runs-on: ${{ matrix.os }}
+        strategy:
+            matrix:
+                os: [ubuntu-latest, macos-latest]
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Python
+              uses: actions/setup-python@v4
+              with:
+                python-version: 3.10
+
+            - name: Install cibuildwheel
+              run: pip install cibuildwheel==2.2.0
+
+            - name: Build wheels
+              run: python -m cibuildwheel --output-dir wheelhouse
+            
+            - name: Upload wheels as artifact
+              uses: actions/upload-artifact@v3
+              with:
+                name: wheelhouse
+                path: ./wheelhouse/*.whl
+              env:
+                CIBW_TEST_COMMAND: python -c "import seislib"
