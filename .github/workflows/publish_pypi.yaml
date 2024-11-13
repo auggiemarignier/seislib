@@ -15,7 +15,7 @@ jobs:
           - os: ubuntu-latest
             archs: auto
           - os: macos-latest
-            archs: x86_64 arm64
+            archs: arm64
 
     steps:
       - name: Checkout code
@@ -26,6 +26,12 @@ jobs:
         with:
           python-version: '3.10'
 
+      - name: Install dependencies (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update &&
+          sudo apt-get install -y libgeos++-dev         
+
       - name: Install cibuildwheel
         run: pip install cibuildwheel
 
@@ -35,6 +41,7 @@ jobs:
           CIBW_SKIP: pp* cp36* cp37* *-win32 *-manylinux_i686 *-musllinux_*
           CIBW_ARCHS: ${{ matrix.archs }}
           CIBW_TEST_COMMAND: python -c "import seislib"
+          CIBW_ENVIRONMENT_MACOS: CC=gcc-12 MACOSX_DEPLOYMENT_TARGET=14.0
           
       - name: Upload wheels as artifact
         uses: actions/upload-artifact@v3
