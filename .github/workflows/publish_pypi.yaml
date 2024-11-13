@@ -1,38 +1,43 @@
 name: Publish to PyPI
 
 on:
-    push:
-        branches:
-            - ci_build
+  push:
+    branches:
+      - ci_build
 
 jobs:
-    build:
-        runs-on: ${{ matrix.os }}
-        strategy:
-            matrix:
-                os: [ubuntu-latest, macos-latest]
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            archs: auto
+          - os: macos-latest
+            archs: x86_64 arm64
 
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-            - name: Set up Python
-              uses: actions/setup-python@v4
-              with:
-                python-version: '3.10'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-            - name: Install cibuildwheel
-              run: pip install cibuildwheel
+      - name: Install cibuildwheel
+        run: pip install cibuildwheel
 
-            - name: Build wheels
-              run: python -m cibuildwheel --output-dir wheelhouse
-              env:
-                CIBW_SKIP: pp* cp36* cp37* cp38* *-win32 *-manylinux_i686 *-musllinux_*
-                CIBW_ARCHS_MACOS: arm64
-                CIBW_TEST_COMMAND: python -c "import seislib"
-            
-            - name: Upload wheels as artifact
-              uses: actions/upload-artifact@v3
-              with:
-                name: wheelhouse
-                path: ./wheelhouse/*.whl
+      - name: Build wheels
+        run: python -m cibuildwheel --output-dir wheelhouse
+        env:
+          CIBW_SKIP: pp* cp36* cp37* *-win32 *-manylinux_i686 *-musllinux_*
+          CIBW_ARCHS: ${{ matrix.archs }}
+          CIBW_TEST_COMMAND: python -c "import seislib"
+          
+      - name: Upload wheels as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: wheelhouse
+          path: ./wheelhouse/*.whl
