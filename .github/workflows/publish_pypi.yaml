@@ -18,6 +18,8 @@ jobs:
             archs: arm64
           - os: macos-13
             archs: x86_64
+          - os: macos-13
+            archs: arm64
 
     steps:
       - name: Checkout code
@@ -36,6 +38,20 @@ jobs:
 
       - name: Install cibuildwheel
         run: pip install cibuildwheel
+
+      - name: Setup MacOS
+        if: matrix.os == 'macos-13' || matrix.os == 'macos-14'
+        run: |
+          echo "CC=gcc-14" >> "$GITHUB_ENV"
+          echo "CXX=g++-14" >> "$GITHUB_ENV"
+          if [[ ${{ matrix.os }} == 'macos-14' ]]; then
+            CIBW="MACOSX_DEPLOYMENT_TARGET=14"
+            echo "CIBW_ENVIRONMENT_MACOS=$CIBW" >> "$GITHUB_ENV"
+          else
+            CIBW="MACOSX_DEPLOYMENT_TARGET=10.12"
+            echo "CIBW_ENVIRONMENT_MACOS=$CIBW" >> "$GITHUB_ENV"
+          fi
+            
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
